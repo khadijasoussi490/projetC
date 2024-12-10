@@ -1,0 +1,249 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil\fcharset0 Calibri;}}
+{\*\generator Riched20 10.0.22621}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\f0\fs22\lang9 #include <stdio.h>\par
+#include <stdlib.h>\par
+#include <string.h>\par
+\par
+struct rendez_vous \{\par
+    char jour[50]; \par
+    int heure;     \par
+\};\par
+\par
+struct patient \{\par
+    char prenom[50];\par
+    char nom[50];\par
+    char date_naissance[15];\par
+    struct rendez_vous rdv;  \par
+    struct patient *suivant; \par
+\};\par
+\par
+struct m\'e9decin \{\par
+    char nom[50];\par
+    char adresse[50];\par
+    char sp\'e9cialit\'e9[50];\par
+    char ville[50];\par
+    int disponibilit\'e9[7][10]; \par
+    struct patient *file_rendez_vous;\par
+    struct m\'e9decin *suivant;  \par
+\};\par
+\par
+struct m\'e9decin* ajouter_m\'e9decin(struct m\'e9decin *t\'eate) \{\par
+    struct m\'e9decin *nouveau = (struct m\'e9decin *)malloc(sizeof(struct m\'e9decin));\par
+    if (nouveau == NULL) \{\par
+        printf("\'c9chec d'allocation m\'e9moire\\n");\par
+        return t\'eate;\par
+    \}\par
+\par
+    getchar();\par
+    printf("Donner le nom du m\'e9decin :\\n");\par
+    fgets(nouveau->nom, sizeof(nouveau->nom), stdin);\par
+    nouveau->nom[strcspn(nouveau->nom, "\\n")] = '\\0';\par
+\par
+    printf("Donner l'adresse du m\'e9decin :\\n");\par
+    fgets(nouveau->adresse, sizeof(nouveau->adresse), stdin);\par
+    nouveau->adresse[strcspn(nouveau->adresse, "\\n")] = '\\0';\par
+\par
+    printf("Donner la sp\'e9cialit\'e9 du m\'e9decin :\\n");\par
+    fgets(nouveau->sp\'e9cialit\'e9, sizeof(nouveau->sp\'e9cialit\'e9), stdin);\par
+    nouveau->sp\'e9cialit\'e9[strcspn(nouveau->sp\'e9cialit\'e9, "\\n")] = '\\0';\par
+\par
+    printf("Donner la ville du m\'e9decin :\\n");\par
+    fgets(nouveau->ville, sizeof(nouveau->ville), stdin);\par
+    nouveau->ville[strcspn(nouveau->ville, "\\n")] = '\\0';\par
+\par
+    printf("Saisir les disponibilit\'e9s du m\'e9decin %s (0 = non disponible, 1 = disponible) :\\n", nouveau->nom);\par
+    char jours[7][10] = \{"Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"\};\par
+    for (int j = 0; j < 7; j++) \{\par
+        printf("\\n%s :\\n", jours[j]);\par
+        for (int k = 0; k < 10; k++) \{\par
+            printf("  Heure %d:00 (0=indisponible, 1=disponible) : ", 8 + k);\par
+            scanf("%d", &nouveau->disponibilit\'e9[j][k]);\par
+            while (nouveau->disponibilit\'e9[j][k] != 0 && nouveau->disponibilit\'e9[j][k] != 1) \{\par
+                printf("Saisie invalide. Entrez 0 ou 1 pour l'heure %d:00 : ", 8 + k);\par
+                scanf("%d", &nouveau->disponibilit\'e9[j][k]);\par
+            \}\par
+        \}\par
+    \}\par
+\par
+    nouveau->suivant = t\'eate;\par
+    return nouveau;\par
+\}\par
+\par
+void afficher_disponibilit\'e9s(struct m\'e9decin *m\'e9d) \{\par
+    const char *jours[7] = \{"Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"\};\par
+    printf("\\nDisponibilit\'e9s du m\'e9decin %s :\\n", m\'e9d->nom);\par
+    for (int j = 0; j < 7; j++) \{\par
+        printf("%s : ", jours[j]);\par
+        for (int k = 0; k < 10; k++) \{\par
+            printf("%d:00 - %s  ", 8 + k, m\'e9d->disponibilit\'e9[j][k] == 1 ? "Disponible" : "Indisponible");\par
+        \}\par
+        printf("\\n");\par
+    \}\par
+\}\par
+\par
+void afficherRendezVous(struct m\'e9decin *m\'e9d) \{\par
+    printf("\\nRendez-vous pour le m\'e9decin %s :\\n", m\'e9d->nom);\par
+    struct patient *current_patient = m\'e9d->file_rendez_vous;\par
+    if (current_patient == NULL) \{\par
+        printf("Aucun rendez-vous enregistr\'e9.\\n");\par
+        return;\par
+    \}\par
+    \par
+    while (current_patient != NULL) \{\par
+        printf("Patient : %s %s, Date de naissance : %s\\n", current_patient->prenom, current_patient->nom, current_patient->date_naissance);\par
+        printf("Jour du rendez-vous : %s, Heure : %d:00\\n", current_patient->rdv.jour, current_patient->rdv.heure);\par
+        current_patient = current_patient->suivant;\par
+    \}\par
+\}\par
+\par
+void ajouterPatient(struct m\'e9decin *med, struct patient *nouveau_patient) \{\par
+    struct patient *temp = med->file_rendez_vous;\par
+    if (temp == NULL) \{\par
+        med->file_rendez_vous = nouveau_patient;\par
+    \} else \{\par
+        while (temp->suivant != NULL) \{\par
+            temp = temp->suivant;\par
+        \}\par
+        temp->suivant = nouveau_patient;\par
+    \}\par
+    nouveau_patient->suivant = NULL;\par
+\}\par
+\par
+void prendreRendezVous(struct m\'e9decin *t\'eate) \{\par
+    struct patient *nouveau_patient = malloc(sizeof(struct patient));\par
+    if (!nouveau_patient) \{\par
+        printf("\'c9chec de l'allocation m\'e9moire\\n");\par
+        return;\par
+    \}\par
+\par
+    printf("Entrez votre pr\'e9nom : ");\par
+    getchar();\par
+    fgets(nouveau_patient->prenom, sizeof(nouveau_patient->prenom), stdin);\par
+    nouveau_patient->prenom[strcspn(nouveau_patient->prenom, "\\n")] = '\\0';\par
+\par
+    printf("Entrez votre nom : ");\par
+    fgets(nouveau_patient->nom, sizeof(nouveau_patient->nom), stdin);\par
+    nouveau_patient->nom[strcspn(nouveau_patient->nom, "\\n")] = '\\0';\par
+\par
+    printf("Entrez votre date de naissance (jj/mm/aaaa) : ");\par
+    fgets(nouveau_patient->date_naissance, sizeof(nouveau_patient->date_naissance), stdin);\par
+    nouveau_patient->date_naissance[strcspn(nouveau_patient->date_naissance, "\\n")] = '\\0';\par
+\par
+    char nom_med[50];\par
+    printf("Entrez le nom du m\'e9decin : ");\par
+    fgets(nom_med, sizeof(nom_med), stdin);\par
+    nom_med[strcspn(nom_med, "\\n")] = '\\0';\par
+\par
+    struct m\'e9decin *courant = t\'eate;\par
+    while (courant != NULL) \{\par
+        if (strcmp(courant->nom, nom_med) == 0) \{\par
+            printf("Disponibilit\'e9s pour le m\'e9decin %s :\\n", courant->nom);\par
+            afficher_disponibilit\'e9s(courant);\par
+\par
+            printf("Choisissez un jour : ");\par
+            fgets(nouveau_patient->rdv.jour, sizeof(nouveau_patient->rdv.jour), stdin);\par
+            nouveau_patient->rdv.jour[strcspn(nouveau_patient->rdv.jour, "\\n")] = '\\0';\par
+\par
+            printf("Choisissez une heure (8-18) : ");\par
+            scanf("%d", &nouveau_patient->rdv.heure);\par
+\par
+            int jour_index = -1;\par
+            const char *jours[7] = \{"Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"\};\par
+            for (int j = 0; j < 7; j++) \{\par
+                if (strcmp(jours[j], nouveau_patient->rdv.jour) == 0) \{\par
+                    jour_index = j;\par
+                    break;\par
+                \}\par
+            \}\par
+\par
+            if (jour_index != -1 && courant->disponibilit\'e9[jour_index][nouveau_patient->rdv.heure - 8] == 1) \{\par
+                courant->disponibilit\'e9[jour_index][nouveau_patient->rdv.heure - 8] = 0;\par
+                ajouterPatient(courant, nouveau_patient);\par
+                printf("Rendez-vous confirm\'e9 avec le m\'e9decin %s \'e0 %d:00 le %s\\n", courant->nom, nouveau_patient->rdv.heure, nouveau_patient->rdv.jour);\par
+            \} else \{\par
+                printf("Cr\'e9neau indisponible, veuillez r\'e9essayer.\\n");\par
+                free(nouveau_patient);\par
+            \}\par
+            return;\par
+        \}\par
+        courant = courant->suivant;\par
+    \}\par
+\par
+    printf("M\'e9decin non trouv\'e9.\\n");\par
+    free(nouveau_patient);\par
+\}\par
+\par
+void sauvegarder_m\'e9decins(struct m\'e9decin *t\'eate) \{\par
+    FILE *fichier = fopen("medecins.txt", "w");\par
+    if (fichier == NULL) \{\par
+        printf("Erreur d'ouverture du fichier de sauvegarde.\\n");\par
+        return;\par
+    \}\par
+\par
+    struct m\'e9decin *actuel = t\'eate;\par
+    while (actuel != NULL) \{\par
+        fprintf(fichier, "%s\\n", actuel->nom);\par
+        fprintf(fichier, "%s\\n", actuel->adresse);\par
+        fprintf(fichier, "%s\\n", actuel->sp\'e9cialit\'e9);\par
+        fprintf(fichier, "%s\\n", actuel->ville);\par
+\par
+        for (int i = 0; i < 7; i++) \{\par
+            for (int j = 0; j < 10; j++) \{\par
+                fprintf(fichier, "%d ", actuel->disponibilit\'e9[i][j]);\par
+            \}\par
+            fprintf(fichier, "\\n");\par
+        \}\par
+\par
+        struct patient *p = actuel->file_rendez_vous;\par
+        while (p != NULL) \{\par
+            fprintf(fichier, "%s %s %s %s %d\\n", p->prenom, p->nom, p->date_naissance, p->rdv.jour, p->rdv.heure);\par
+            p = p->suivant;\par
+        \}\par
+        fprintf(fichier, "\\n");\par
+\par
+        actuel = actuel->suivant;\par
+    \}\par
+\par
+    fclose(fichier);\par
+    printf("Donn\'e9es sauvegard\'e9es avec succ\'e8s.\\n");\par
+\}\par
+\par
+int main() \{\par
+    struct m\'e9decin *t\'eate = NULL;\par
+    int choix;\par
+\par
+    do \{\par
+        printf("\\nMenu :\\n");\par
+        printf("1. Ajouter un m\'e9decin\\n");\par
+        printf("2. Prendre un rendez-vous\\n");\par
+        printf("3. Afficher les rendez-vous d'un m\'e9decin\\n");\par
+        printf("4. Sauvegarder les donn\'e9es\\n");\par
+        printf("5. Quitter\\n");\par
+        printf("Entrez votre choix : ");\par
+        scanf("%d", &choix);\par
+\par
+        switch (choix) \{\par
+            case 1:\par
+                t\'eate = ajouter_m\'e9decin(t\'eate);\par
+                break;\par
+            case 2:\par
+                prendreRendezVous(t\'eate);\par
+                break;\par
+            case 3:\par
+                afficherRendezVous(t\'eate);\par
+                break;\par
+            case 4:\par
+                sauvegarder_m\'e9decins(t\'eate);\par
+                break;\par
+            case 5:\par
+                printf("Au revoir !\\n");\par
+                break;\par
+            default:\par
+                printf("Choix invalide, r\'e9essayez.\\n");\par
+        \}\par
+    \} while (choix != 5);\par
+\par
+    return 0;\par
+\}\par
+}
+ 
